@@ -1,0 +1,25 @@
+2026-04-20 11:35:41,980 - Query: what is fastapi
+2026-04-20 11:35:41,981 - Docs: []
+2026-04-20 11:35:41,981 - Distances: []
+2026-04-20 11:35:41,981 - Answer: I don't know (insufficient relevant context)
+2026-04-20 11:35:41,981 - Latency: 17.351277112960815
+2026-04-20 11:40:45,226 - Query: what is fastapi
+2026-04-20 11:40:45,227 - Docs: []
+2026-04-20 11:40:45,227 - Distances: []
+2026-04-20 11:40:45,227 - Answer: I don't know (insufficient relevant context)
+2026-04-20 11:40:45,227 - Latency: 6.079912900924683
+2026-04-20 11:41:07,306 - Query: what is fastapi
+2026-04-20 11:41:07,307 - Docs: []
+2026-04-20 11:41:07,307 - Distances: []
+2026-04-20 11:41:07,307 - Answer: I don't know (insufficient relevant context)
+2026-04-20 11:41:07,309 - Latency: 5.140281438827515
+2026-04-20 11:48:16,756 - Query: what is fastapi
+2026-04-20 11:48:16,756 - Docs: []
+2026-04-20 11:48:16,756 - Distances: []
+2026-04-20 11:48:16,756 - Answer: I don't know (insufficient relevant context)
+2026-04-20 11:48:16,756 - Latency: 15.18001389503479
+2026-04-20 12:18:14,737 - Query: What is FastAPI?
+2026-04-20 12:18:14,738 - Docs: ['FastAPI is a modern web framework for building APIs with Python.', 'Ollama allows running large language models locally on your machine.', 'RAG stands for Retrieval Augmented Generation, combining retrieval with LLMs.']
+2026-04-20 12:18:14,738 - Distances: [143.33094787597656, 488.2661437988281, 519.9828491210938]
+2026-04-20 12:18:14,738 - Answer: FastAPI is a modern web framework for building APIs with Python.
+2026-04-20 12:18:14,738 - Latency: 16.271737575531006

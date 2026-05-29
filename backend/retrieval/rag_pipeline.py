@@ -1,37 +1,44 @@
-from memory.vector_store import query_documents
-from utils.llm import generate_response
+from backend.memory.vector_store import query_documents
+from backend.utils.llm import generate_response
 
 
 def build_prompt(query: str, docs: list):
     context = "\n\n".join(docs)
 
-    prompt = f"""
-You are an intelligent AI assistant.
+    return f"""
+You are an AI assistant.
 
-STRICT RULES:
-- Answer ONLY using the provided context
-- Do NOT make up information
-- If the answer is unclear, say "I don't know"
-- Give a clear and complete explanation (2-4 sentences)
+Answer ONLY from the context below.
+If not found, say "I don't know".
 
 Context:
 {context}
 
-User Question:
+Question:
 {query}
 
-Helpful Answer:
+Answer:
 """
-    return prompt
 
 
 def rag_query(query: str):
     results = query_documents(query)
 
-    docs = results["documents"][0]
+    docs = results["documents"]
+    distances = results["distances"]
+
+    if not docs:
+        return {
+            "answer": "I don't know (no data found)",
+            "retrieved_docs": [],
+            "distances": []
+        }
 
     prompt = build_prompt(query, docs)
+    answer = generate_response(prompt)
 
-    response = generate_response(prompt)
-
-    return response
+    return {
+        "answer": answer,
+        "retrieved_docs": docs,
+        "distances": distances
+    }

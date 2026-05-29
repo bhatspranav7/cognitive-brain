@@ -1,44 +1,60 @@
 from backend.agents.graph import graph
 
-query = input(
-    "Ask a question: "
-)
 
-result = graph.invoke(
-    {
-        "query": query
-    }
-)
+while True:
 
-print("\n")
-
-print("ANSWER")
-print("=" * 50)
-
-print(result["answer"])
-
-print("\n")
-print("SOURCES")
-print("=" * 50)
-
-sources = result.get("sources", [])
-
-if len(sources) == 0:
-    print("No sources found")
-else:
-    for source in sources:
-        print(source)
-
-print("\n")
-
-print(
-    "VALID:",
-    result["is_valid"]
-)
-
-print(
-    "SCORE:",
-    result.get(
-        "similarity_score"
+    query = input(
+        "\nAsk a question: "
     )
-)
+
+    if query.lower() == "exit":
+        break
+
+    result = graph.invoke({
+
+        "query": query,
+
+        "retry_count": 0
+    })
+
+    print()
+
+    print("ANSWER")
+    print("=" * 50)
+
+    print(
+        result["answer"]
+    )
+
+    print()
+
+    print("BOOST LEVEL")
+    print("=" * 50)
+
+    print(
+        result.get(
+            "retrieval_boost",
+            "neutral"
+        )
+    )
+
+    print()
+
+    print("VALID")
+    print("=" * 50)
+
+    print(
+        result["is_valid"]
+    )
+
+    print()
+
+    print("SCORE")
+    print("=" * 50)
+
+    print(
+        result.get(
+            "similarity_score",
+            0
+        )
+    )

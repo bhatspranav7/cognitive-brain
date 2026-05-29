@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>CortexRAG Dashboard</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            margin: 40px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+
+            background: white;
+
+            padding: 20px;
+
+            border-radius: 10px;
+
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+            width: 220px;
+        }
+
+        .card {
+
+            background: white;
+
+            padding: 20px;
+
+            margin-bottom: 20px;
+
+            border-radius: 10px;
+
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>🧠 CortexRAG Dashboard</h1>
+
+<div class="cards">
+
+    <div class="summary-card">
+        <h3>Total Feedback</h3>
+        <p id="total-feedback">0</p>
+    </div>
+
+    <div class="summary-card">
+        <h3>Average Rating</h3>
+        <p id="avg-rating">0</p>
+    </div>
+
+    <div class="summary-card">
+        <h3>Avg Confidence</h3>
+        <p id="avg-confidence">0</p>
+    </div>
+
+    <div class="summary-card">
+        <h3>Best Confidence</h3>
+        <p id="best-confidence">0</p>
+    </div>
+
+    <div class="summary-card">
+        <h3>Top Source</h3>
+        <p id="top-source">Loading...</p>
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2>Recent Queries</h2>
+
+    <ul id="history">
+        <li>Loading...</li>
+    </ul>
+
+</div>
+
+<div class="card">
+
+    <h2>Source Usage Analytics</h2>
+
+    <div id="sources">
+        Loading...
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2>Agent Metrics</h2>
+
+    <div id="metrics">
+        Loading...
+    </div>
+
+</div>
+
+<script>
+
+async function loadFeedback() {
+
+    const response =
+        await fetch("/metrics/feedback");
+
+    const data =
+        await response.json();
+
+    document.getElementById(
+        "total-feedback"
+    ).innerText =
+        data.total_feedback;
+
+    document.getElementById(
+        "avg-rating"
+    ).innerText =
+        data.average_rating;
+}
+
+
+async function loadConfidence() {
+
+    const response =
+        await fetch("/metrics/confidence");
+
+    const data =
+        await response.json();
+
+    document.getElementById(
+        "avg-confidence"
+    ).innerText =
+        data.average_confidence;
+
+    document.getElementById(
+        "best-confidence"
+    ).innerText =
+        data.highest_confidence;
+}
+
+
+async function loadHistory() {
+
+    const response =
+        await fetch("/metrics/history");
+
+    const data =
+        await response.json();
+
+    let html = "";
+
+    data.reverse().forEach(
+        query => {
+
+            html += `
+            <li>${query}</li>
+            `;
+        }
+    );
+
+    document.getElementById(
+        "history"
+    ).innerHTML = html;
+}
+
+
+async function loadSources() {
+
+    const response =
+        await fetch("/metrics/sources");
+
+    const data =
+        await response.json();
+
+    let html = "";
+
+    let topSource = "";
+    let topCount = 0;
+
+    for (const source in data) {
+
+        html += `
+
+        <p>
+            <b>${source}</b>
+            : ${data[source]} retrievals
+        </p>
+
+        `;
+
+        if (data[source] > topCount) {
+
+            topCount = data[source];
+            topSource = source;
+        }
+    }
+
+    document.getElementById(
+        "sources"
+    ).innerHTML = html;
+
+    document.getElementById(
+        "top-source"
+    ).innerText =
+        topSource || "No Data";
+}
+
+
+async function loadMetrics() {
+
+    const response =
+        await fetch("/metrics/agents");
+
+    const data =
+        await response.json();
+
+    let html = "";
+
+    for (const agent in data) {
+
+        html += `
+
+        <div class="card">
+
+            <h3>${agent}</h3>
+
+            <p>
+            Executions:
+            ${data[agent].count}
+            </p>
+
+            <p>
+            Avg Latency:
+            ${data[agent].avg_latency}s
+            </p>
+
+            <p>
+            Max Latency:
+            ${data[agent].max_latency}s
+            </p>
+
+            <p>
+            Min Latency:
+            ${data[agent].min_latency}s
+            </p>
+
+        </div>
+
+        `;
+    }
+
+    document.getElementById(
+        "metrics"
+    ).innerHTML = html;
+}
+
+
+loadFeedback();
+loadConfidence();
+loadHistory();
+loadSources();
+loadMetrics();
+
+</script>
+
+</body>
+</html>

@@ -1,28 +1,26 @@
-from backend.memory.vector_store import query_documents
+from backend.retrieval.adaptive_retriever import adaptive_retrieve
 
 
 def retriever_agent(state):
 
     query = state["query"]
 
-    results = query_documents(
-        query,
-        top_k=5
+    result = adaptive_retrieve(
+        query
     )
 
-    state["retrieved_docs"] = results.get(
-        "documents",
-        []
-    )
+    state["retrieved_docs"] = result[
+        "documents"
+    ]
 
-    state["sources"] = results.get(
+    state["retrieval_metadata"] = result.get(
         "metadatas",
         []
     )
 
-    state["distances"] = results.get(
-        "distances",
-        []
+    state["retrieval_boost"] = result.get(
+        "boost",
+        "neutral"
     )
 
     return state

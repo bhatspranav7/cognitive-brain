@@ -1,11 +1,21 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import time
 
+from backend.api.metrics import router as metrics_router
 from backend.retrieval.rag_pipeline import rag_query
 from backend.observability.logger import log_event
 
 app = FastAPI(title="CortexRAG API")
+
+# Register routes
+app.include_router(metrics_router)
+
+# Templates
+templates = Jinja2Templates(
+    directory="backend/dashboard/templates"
+)
 
 
 class QueryRequest(BaseModel):
@@ -21,26 +31,62 @@ class QueryResponse(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "CortexRAG API is running 🚀"}
+
+    return {
+        "message": "CortexRAG API is running 🚀"
+    }
+
+
+@app.get("/dashboard")
+def dashboard(request: Request):
+
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html"
+    )
 
 
 @app.post("/query", response_model=QueryResponse)
 def query_rag(req: QueryRequest):
+
     start = time.time()
 
-    result = rag_query(req.query)
+    result = rag_query(
+        req.query
+    )
 
     latency = time.time() - start
 
-    log_event(f"Query: {req.query}")
-    log_event(f"Docs: {result['retrieved_docs']}")
-    log_event(f"Distances: {result['distances']}")
-    log_event(f"Answer: {result['answer']}")
-    log_event(f"Latency: {latency}")
+    log_event(
+        f"Query: {req.query}"
+    )
+
+    log_event(
+        f"Docs: {result['retrieved_docs']}"
+    )
+
+    log_event(
+        f"Distances: {result['distances']}"
+    )
+
+    log_event(
+        f"Answer: {result['answer']}"
+    )
+
+    log_event(
+        f"Latency: {latency}"
+    )
 
     return {
         "answer": result["answer"],
-        "latency": round(latency, 3),
-        "retrieved_docs": result["retrieved_docs"],
-        "distances": result["distances"]
+        "latency": round(
+            latency,
+            3
+        ),
+        "retrieved_docs": result[
+            "retrieved_docs"
+        ],
+        "distances": result[
+            "distances"
+        ]
     }

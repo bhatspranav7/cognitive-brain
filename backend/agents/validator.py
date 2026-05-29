@@ -1,7 +1,10 @@
 def validator_agent(state):
 
     docs = " ".join(
-        state.get("retrieved_docs", [])
+        state.get(
+            "retrieved_docs",
+            []
+        )
     ).lower()
 
     answer = state.get(
@@ -10,7 +13,10 @@ def validator_agent(state):
     ).lower()
 
     if not docs:
+
         state["is_valid"] = False
+        state["similarity_score"] = 0.0
+
         return state
 
     overlap = 0
@@ -30,6 +36,6 @@ def validator_agent(state):
         4
     )
 
-    state["is_valid"] = score > 0.20
+    state["is_valid"] = score >= 0.30
 
     return state

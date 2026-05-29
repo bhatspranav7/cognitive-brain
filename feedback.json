@@ -1,0 +1,7 @@
+[
+    {
+        "query": "What skills does Pranav have?",
+        "answer": "Pranav has the following skills:\n\n1. Languages: Python, JavaScript, SQL.\n2. System Design & Scalability: Scalable Backend Systems, Concurrent Request Handling, Layered Architecture, Microservices Basics.\n3. API & Backend: REST APIs, JSON APIs, Authentication, Postman, FastAPI.\n4. Frameworks/Libraries: Pandas, Pydantic, LangGraph, Tensorflow, LlamaIndex.\n5. Agentic AI: RAG, LLMs, Embedding Pipelines, Agentic Workflows, Vector-Search.\n6. Concepts: DSA, DBMS, Computer Networks.\n7. Soft Skills: Communication, Leadership, Creative Thinking, Time Management.",
+        "rating": 5
+    }
+]

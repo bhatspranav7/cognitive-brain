@@ -5,7 +5,10 @@ def retriever_agent(state):
 
     query = state["query"]
 
-    results = query_documents(query)
+    results = query_documents(
+        query,
+        top_k=5
+    )
 
     state["retrieved_docs"] = results.get(
         "documents",

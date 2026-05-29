@@ -1,21 +1,22 @@
-import time
-
-from backend.utils.llm import generate_response
-from backend.observability.tracer import trace_agent
+from backend.llm.ollama_client import generate_response
 
 
 def reasoner_agent(state):
-    start = time.time()
 
     query = state["query"]
-    docs = state["retrieved_docs"]
+
+    docs = state.get("retrieved_docs", [])
 
     context = "\n\n".join(docs)
 
     prompt = f"""
-You are an intelligent AI assistant.
+You are a grounded AI assistant.
 
-Use ONLY the context below to answer.
+Answer ONLY using the provided context.
+
+If the answer is not present in the context,
+reply with:
+"I don't know based on the provided documents."
 
 Context:
 {context}
@@ -28,17 +29,6 @@ Answer:
 
     answer = generate_response(prompt)
 
-    output = {
-        "answer": answer
-    }
+    state["answer"] = answer
 
-    latency = time.time() - start
-
-    trace_agent(
-        agent_name="reasoner",
-        input_data=query,
-        output_data=output,
-        latency=latency
-    )
-
-    return output
+    return state

@@ -1,44 +1,35 @@
-import time
-
-from backend.utils.embeddings import get_embedding
-from backend.utils.similarity import cosine_similarity
-from backend.observability.tracer import trace_agent
-
-SIMILARITY_THRESHOLD = 0.60
-
-
 def validator_agent(state):
-    start = time.time()
 
-    answer = state["answer"]
-    docs = state["retrieved_docs"]
+    docs = " ".join(
+        state.get("retrieved_docs", [])
+    ).lower()
 
-    combined_docs = " ".join(docs)
+    answer = state.get(
+        "answer",
+        ""
+    ).lower()
 
-    # Generate embeddings
-    answer_embedding = get_embedding(answer)
-    docs_embedding = get_embedding(combined_docs)
+    if not docs:
+        state["is_valid"] = False
+        return state
 
-    # Semantic similarity
-    similarity = cosine_similarity(
-        answer_embedding,
-        docs_embedding
+    overlap = 0
+
+    for word in answer.split():
+
+        if word in docs:
+            overlap += 1
+
+    score = overlap / max(
+        len(answer.split()),
+        1
     )
 
-    is_valid = similarity >= SIMILARITY_THRESHOLD
-
-    output = {
-        "is_valid": is_valid,
-        "similarity_score": round(similarity, 4)
-    }
-
-    latency = time.time() - start
-
-    trace_agent(
-        agent_name="validator",
-        input_data=answer,
-        output_data=output,
-        latency=latency
+    state["similarity_score"] = round(
+        score,
+        4
     )
 
-    return output
+    state["is_valid"] = score > 0.20
+
+    return state

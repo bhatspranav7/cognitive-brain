@@ -69,7 +69,13 @@ def _chat_completion(base_url: str, api_key: str, model: str, prompt: str) -> st
             },
             timeout=config.LLM_TIMEOUT,
         )
-        response.raise_for_status()
+        if not response.ok:
+            # Surface the provider's own message — it names the bad model or
+            # key, which a bare status code hides.
+            raise LLMError(
+                f"Chat API {response.status_code} for model '{model}': "
+                f"{response.text[:400]}"
+            )
         data = response.json()
     except requests.RequestException as exc:
         raise LLMError(f"Chat API request failed: {exc}") from exc
@@ -123,6 +129,67 @@ def _ollama_embedding(text: str) -> list:
 
 
 # ----------------------------------------------------------------- health
+
+def list_models() -> dict:
+    """Ask the configured provider which models this key may actually use.
+
+    Chat APIs answer 404 (not 401) when the key is valid but the model is
+    not available to the account, so this is the quickest way to tell a
+    misconfigured model from a bad key.
+    """
+    if config.LLM_PROVIDER == "ollama":
+        try:
+            response = requests.get(f"{config.OLLAMA_HOST}/api/tags", timeout=10)
+            response.raise_for_status()
+            return {
+                "provider": "ollama",
+                "configured": config.OLLAMA_MODEL,
+                "available": [m["name"] for m in response.json().get("models", [])],
+            }
+        except requests.RequestException as exc:
+            return {"provider": "ollama", "error": str(exc)}
+
+    if config.LLM_PROVIDER == "groq":
+        base_url, api_key, configured = (
+            config.GROQ_BASE_URL,
+            config.GROQ_API_KEY,
+            config.GROQ_MODEL,
+        )
+    else:
+        base_url, api_key, configured = (
+            config.OPENAI_BASE_URL,
+            config.OPENAI_API_KEY,
+            config.OPENAI_MODEL,
+        )
+
+    if not api_key:
+        return {"provider": config.LLM_PROVIDER, "error": "no API key configured"}
+
+    try:
+        response = requests.get(
+            f"{base_url}/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=15,
+        )
+    except requests.RequestException as exc:
+        return {"provider": config.LLM_PROVIDER, "error": str(exc)}
+
+    if not response.ok:
+        return {
+            "provider": config.LLM_PROVIDER,
+            "configured": configured,
+            "error": f"{response.status_code}: {response.text[:300]}",
+        }
+
+    models = sorted(m.get("id", "") for m in response.json().get("data", []))
+
+    return {
+        "provider": config.LLM_PROVIDER,
+        "configured": configured,
+        "configured_is_available": configured in models,
+        "available": models,
+    }
+
 
 def llm_available() -> bool:
     """Cheap reachability check used by /health (never spends tokens)."""

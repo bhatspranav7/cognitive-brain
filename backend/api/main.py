@@ -12,7 +12,7 @@ from backend import config
 from backend.agents.graph import graph
 from backend.api.metrics import router as metrics_router
 from backend.ingest_pdf import ingest_file
-from backend.llm.client import LLMError, llm_available
+from backend.llm.client import LLMError, list_models, llm_available
 from backend.memory import vector_store
 from backend.memory.conversation_memory import save_interaction
 from backend.memory.feedback_memory import get_average_rating
@@ -131,6 +131,13 @@ def health():
         "documents_indexed": vector_store.count(),
         "index_ready": _index_ready.is_set(),
     }
+
+
+@app.get("/health/models")
+def health_models():
+    """Which models the configured provider key can actually reach.
+    Returns ids only — no key material."""
+    return list_models()
 
 
 @app.get("/dashboard")

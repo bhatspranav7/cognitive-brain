@@ -1,21 +1,2 @@
-import requests
-
-OLLAMA_URL = "http://localhost:11434/api/generate"
-
-MODEL = "llama3.2"
-
-
-def generate_response(prompt: str):
-
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": MODEL,
-            "prompt": prompt,
-            "stream": False
-        }
-    )
-
-    data = response.json()
-
-    return data.get("response", "")
+# Kept for backwards compatibility — the real client lives in backend.llm.client
+from backend.llm.client import generate_response  # noqa: F401

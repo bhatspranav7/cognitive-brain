@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 
-class AgentState(TypedDict):
+class AgentState(TypedDict, total=False):
 
     query: str
 
@@ -10,6 +10,8 @@ class AgentState(TypedDict):
     retrieval_metadata: list
 
     retrieval_boost: str
+
+    distances: list
 
     answer: str
 

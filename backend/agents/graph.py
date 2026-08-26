@@ -1,68 +1,71 @@
+import time
+
 from langgraph.graph import StateGraph, END
 
 from backend.agents.state import AgentState
 from backend.agents.retriever import retriever_agent
 from backend.agents.reasoner import reasoner_agent
 from backend.agents.validator import validator_agent
+from backend.observability.tracer import trace_agent
 
-from backend.memory.conversation_memory import save_interaction
+MAX_RETRIES = 2
 
 
-# Build graph
+def _traced(name, fn, summarize):
+    """Wrap an agent node so every execution lands in agent_traces.jsonl —
+    this is what feeds the /metrics endpoints."""
+
+    def wrapper(state):
+        start = time.time()
+        result = fn(state)
+        latency = time.time() - start
+        trace_agent(name, state.get("query", ""), summarize(result), latency)
+        return result
+
+    return wrapper
+
+
+def _retriever_summary(state):
+    return {
+        "documents_found": len(state.get("retrieved_docs", [])),
+        "sources": state.get("retrieval_metadata", []),
+        "boost": state.get("retrieval_boost", "neutral"),
+    }
+
+
+def _reasoner_summary(state):
+    return {"answer": state.get("answer", "")[:300]}
+
+
+def _validator_summary(state):
+    return {
+        "similarity_score": state.get("similarity_score", 0.0),
+        "is_valid": state.get("is_valid", False),
+    }
+
+
 builder = StateGraph(AgentState)
 
-# Nodes
-builder.add_node("retriever", retriever_agent)
-builder.add_node("reasoner", reasoner_agent)
-builder.add_node("validator", validator_agent)
+builder.add_node("retriever", _traced("retriever", retriever_agent, _retriever_summary))
+builder.add_node("reasoner", _traced("reasoner", reasoner_agent, _reasoner_summary))
+builder.add_node("validator", _traced("validator", validator_agent, _validator_summary))
 
 
-# Validation routing
 def validation_router(state):
-
-    # Save successful interaction
-    save_interaction(
-        state["query"],
-        state["answer"]
-    )
-
+    # retry_count is incremented by the validator node itself (router
+    # mutations don't persist in LangGraph), so this only reads state.
     if state["is_valid"]:
         return END
 
-    retry_count = state.get(
-        "retry_count",
-        0
-    )
-
-    if retry_count >= 2:
+    if state.get("retry_count", 0) >= MAX_RETRIES:
         return END
-
-    state["retry_count"] = (
-        retry_count + 1
-    )
 
     return "reasoner"
 
 
-# Flow
-builder.set_entry_point(
-    "retriever"
-)
+builder.set_entry_point("retriever")
+builder.add_edge("retriever", "reasoner")
+builder.add_edge("reasoner", "validator")
+builder.add_conditional_edges("validator", validation_router)
 
-builder.add_edge(
-    "retriever",
-    "reasoner"
-)
-
-builder.add_edge(
-    "reasoner",
-    "validator"
-)
-
-builder.add_conditional_edges(
-    "validator",
-    validation_router
-)
-
-# Compile
 graph = builder.compile()

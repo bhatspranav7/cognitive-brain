@@ -109,3 +109,6 @@ API_KEY = os.getenv("CORTEX_API_KEY", "")
 AUTO_INGEST = _flag("AUTO_INGEST", "true")
 
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "25"))
+
+# How long a query waits for the startup ingest to finish before proceeding.
+INDEX_WAIT_SECONDS = int(os.getenv("INDEX_WAIT_SECONDS", "180"))

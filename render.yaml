@@ -1,0 +1,40 @@
+# Render Blueprint — deploy the CortexRAG API with one click:
+# https://dashboard.render.com/blueprints -> New Blueprint Instance -> pick this repo.
+# After the first deploy, set GROQ_API_KEY in the service's Environment tab.
+
+services:
+  - type: web
+    name: cortexrag-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.1-8b-instant
+      - key: EMBEDDING_PROVIDER
+        value: local
+      - key: AUTO_INGEST
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      # Optional: protect mutating endpoints on the public internet
+      # - key: CORTEX_API_KEY
+      #   generateValue: true
+
+    # The free plan has an ephemeral filesystem: the vector store and
+    # feedback reset on every deploy (AUTO_INGEST rebuilds the index from
+    # documents/ at boot). For persistence, upgrade the plan and attach:
+    # disk:
+    #   name: cortexrag-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    # ...then add env vars DATA_DIR=/var/data, CHROMA_DIR=/var/data/chroma_db,
+    # DOCS_DIR=/var/data/documents

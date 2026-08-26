@@ -12,6 +12,14 @@ Thumbs.db
 
 # Logs
 *.log
+logs.txt
 
-# Chroma DB (optional - remove if you want persistence)
-chroma/
+# Runtime state (regenerated locally; ephemeral in the cloud)
+chroma_db/
+agent_traces.jsonl
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local

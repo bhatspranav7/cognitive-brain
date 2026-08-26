@@ -5,22 +5,14 @@ def retriever_agent(state):
 
     query = state["query"]
 
-    result = adaptive_retrieve(
-        query
-    )
+    result = adaptive_retrieve(query)
 
-    state["retrieved_docs"] = result[
-        "documents"
-    ]
+    state["retrieved_docs"] = result["documents"]
 
-    state["retrieval_metadata"] = result.get(
-        "metadatas",
-        []
-    )
+    state["retrieval_metadata"] = result.get("metadatas", [])
 
-    state["retrieval_boost"] = result.get(
-        "boost",
-        "neutral"
-    )
+    state["distances"] = result.get("distances", [])
+
+    state["retrieval_boost"] = result.get("boost", "neutral")
 
     return state

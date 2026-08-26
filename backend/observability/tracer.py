@@ -1,8 +1,7 @@
 import json
-import time
 from datetime import datetime
 
-TRACE_FILE = "agent_traces.jsonl"
+from backend import config
 
 
 def trace_agent(agent_name, input_data, output_data, latency):
@@ -11,8 +10,8 @@ def trace_agent(agent_name, input_data, output_data, latency):
         "agent": agent_name,
         "latency": round(latency, 4),
         "input": input_data,
-        "output": output_data
+        "output": output_data,
     }
 
-    with open(TRACE_FILE, "a") as f:
+    with open(config.TRACE_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(trace) + "\n")

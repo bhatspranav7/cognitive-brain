@@ -1,13 +1,2 @@
-import requests
-
-OLLAMA_EMBED_URL = "http://localhost:11434/api/embeddings"
-
-def get_embedding(text: str):
-    response = requests.post(
-        OLLAMA_EMBED_URL,
-        json={
-            "model": "nomic-embed-text",
-            "prompt": text
-        }
-    )
-    return response.json()["embedding"]
+# Kept for backwards compatibility — the real client lives in backend.llm.client
+from backend.llm.client import get_embedding  # noqa: F401

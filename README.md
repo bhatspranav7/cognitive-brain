@@ -150,7 +150,9 @@ Copy `.env.example` → `.env`. Everything has sensible local defaults.
 4. Set the `GROQ_API_KEY` env var when prompted → deploy.
 5. First boot auto-ingests `documents/` (the store is empty in the cloud). Verify: `https://<your-app>.onrender.com/health` → `"llm_ok": true`.
 
-Notes: the free plan sleeps after idle (first request takes ~1 min) and has an **ephemeral disk** — the index rebuilds from `documents/` on each deploy, but *uploads and feedback reset*. For persistence, attach a disk (see comments in `render.yaml`).
+Notes: the free plan sleeps after ~15 min idle and has an **ephemeral disk** — the index rebuilds from `documents/` on each cold start (~60s, mostly the one-time embedding-model download), but *uploads and feedback reset*. For persistence, attach a disk (see comments in `render.yaml`). Startup ingestion runs off the main thread so the port binds immediately; `/query` waits for the index rather than answering from an empty store, and `/health` reports `index_ready`.
+
+**Before a live demo:** open the app ~2 minutes early and ask one throwaway question. That wakes the server, rebuilds the index, and warms everything — so the demo itself is instant. A cold first request can otherwise take a minute while the service spins up.
 
 ### 2. Frontend → Vercel (free)
 

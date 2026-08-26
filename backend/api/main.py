@@ -1,3 +1,4 @@
+import threading
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -23,19 +24,31 @@ from backend.utils.citation_builder import build_citations
 APP_VERSION = "2.0.0"
 
 
+# Set once the startup index is usable. Ingestion runs off the main thread
+# so the port binds immediately (cloud hosts fail a deploy that is slow to
+# listen), while /query waits here instead of answering from an empty store.
+_index_ready = threading.Event()
+
+
+def _startup_ingest():
+    try:
+        if vector_store.count() == 0:
+            from backend.ingest_pdf import ingest_pdfs
+
+            print("Vector store empty — auto-ingesting documents/ ...")
+            ingest_pdfs()
+    except Exception as exc:
+        print(f"Auto-ingest failed: {exc}")
+    finally:
+        _index_ready.set()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # On a fresh deploy (empty vector store) index the PDFs committed in
-    # documents/ so the API can answer questions out of the box.
     if config.AUTO_INGEST:
-        try:
-            if vector_store.count() == 0:
-                from backend.ingest_pdf import ingest_pdfs
-
-                print("Vector store empty — auto-ingesting documents/ ...")
-                ingest_pdfs()
-        except Exception as exc:
-            print(f"Auto-ingest skipped: {exc}")
+        threading.Thread(target=_startup_ingest, daemon=True).start()
+    else:
+        _index_ready.set()
     yield
 
 
@@ -116,6 +129,7 @@ def health():
         "llm_ok": llm_available(),
         "embedding_provider": config.EMBEDDING_PROVIDER,
         "documents_indexed": vector_store.count(),
+        "index_ready": _index_ready.is_set(),
     }
 
 
@@ -128,6 +142,10 @@ def dashboard(request: Request):
 def query_rag(req: QueryRequest):
     """Run the full multi-agent pipeline: retriever -> reasoner ->
     validator (with up to 2 retries when grounding is weak)."""
+
+    # First request after a cold start can arrive while documents/ is still
+    # being indexed; wait rather than answer "I don't know" from an empty store.
+    _index_ready.wait(timeout=config.INDEX_WAIT_SECONDS)
 
     start = time.time()
 

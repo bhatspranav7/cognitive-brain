@@ -6,6 +6,8 @@ bundled ONNX MiniLM model, so no GPU, model server, or embedding API key
 is needed in the cloud.
 """
 
+import time
+
 import requests
 
 from backend import config
@@ -191,13 +193,32 @@ def list_models() -> dict:
     }
 
 
+_availability_cache = {"checked_at": 0.0, "ok": False}
+_AVAILABILITY_TTL = 60.0
+
+
 def llm_available() -> bool:
-    """Cheap reachability check used by /health (never spends tokens)."""
-    if config.LLM_PROVIDER == "groq":
-        return bool(config.GROQ_API_KEY)
-    if config.LLM_PROVIDER == "openai":
-        return bool(config.OPENAI_API_KEY)
-    try:
-        return requests.get(f"{config.OLLAMA_HOST}/api/tags", timeout=3).ok
-    except requests.RequestException:
-        return False
+    """Reachability check used by /health (never spends tokens).
+
+    Verifies the configured model is actually listed by the provider —
+    checking only that a key is non-empty reports healthy right up until
+    every query fails.
+    """
+    now = time.monotonic()
+    if now - _availability_cache["checked_at"] < _AVAILABILITY_TTL:
+        return _availability_cache["ok"]
+
+    info = list_models()
+    if "error" in info:
+        ok = False
+    else:
+        available = info.get("available") or []
+        configured = info.get("configured", "")
+        # Ollama reports tags like "llama3.2:latest" for model "llama3.2".
+        ok = any(
+            name == configured or name.split(":")[0] == configured
+            for name in available
+        )
+
+    _availability_cache.update(checked_at=now, ok=ok)
+    return ok

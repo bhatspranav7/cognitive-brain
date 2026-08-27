@@ -10,6 +10,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
+    autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
@@ -17,8 +18,11 @@ services:
         value: groq
       - key: GROQ_API_KEY
         sync: false
+      # Groq gates model access per account: a key that cannot reach a model
+      # gets 404 (401 means the key itself is bad). Check /health/models to
+      # see what this key can actually use.
       - key: GROQ_MODEL
-        value: llama-3.1-8b-instant
+        value: llama-3.3-70b-versatile
       - key: EMBEDDING_PROVIDER
         value: local
       - key: AUTO_INGEST

@@ -8,6 +8,8 @@
 - **Frontend:** React + Vite + TypeScript (deployed on **Vercel**)
 - **MCP:** optional server so Claude can query your documents as a tool
 
+**Live:** app → https://cortexrag.vercel.app · API → https://cortexrag-api.onrender.com/docs
+
 ---
 
 ## Architecture

@@ -3,7 +3,7 @@
 **A full-stack cognitive multi-agent RAG system.** Upload documents, ask questions, and get answers that are *retrieved, reasoned, validated, and traced* — with confidence scores, source citations, feedback-driven adaptive retrieval, and a live observability dashboard.
 
 - **Backend:** FastAPI + LangGraph + ChromaDB (deployed on **Render**)
-- **LLM:** Ollama (`llama3.2`) locally · **Groq** (`llama-3.1-8b-instant`, free tier) in the cloud
+- **LLM:** Ollama (`llama3.2`) locally · **Groq** (`openai/gpt-oss-20b`, free tier) in the cloud
 - **Embeddings:** `nomic-embed-text` via Ollama locally · ONNX MiniLM in-process in the cloud
 - **Frontend:** React + Vite + TypeScript (deployed on **Vercel**)
 - **MCP:** optional server so Claude can query your documents as a tool
@@ -133,7 +133,7 @@ Copy `.env.example` → `.env`. Everything has sensible local defaults.
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | accepts `0.0.0.0`, `host:port`, full URLs |
 | `OLLAMA_MODEL` | `llama3.2` | generation model |
 | `GROQ_API_KEY` | — | required when `LLM_PROVIDER=groq` |
-| `GROQ_MODEL` | `llama-3.1-8b-instant` | Groq model |
+| `GROQ_MODEL` | `openai/gpt-oss-20b` | Groq model (check `/health/models` for what your key can use) |
 | `EMBEDDING_PROVIDER` | `ollama` | `ollama` (nomic-embed-text) \| `local` (ONNX MiniLM, serverless) |
 | `ALLOWED_ORIGINS` | `*` | CORS — set your Vercel URL in prod |
 | `CORTEX_API_KEY` | *(empty = off)* | when set, mutating endpoints require `X-API-Key` |

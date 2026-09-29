@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { ChatMessage } from "../types";
 import StarRating from "./StarRating";
+import { Markdown } from "./Markdown";
 
 const THINKING_STAGES = [
   "Retriever agent — searching the vector store…",
@@ -112,7 +113,9 @@ export default function ChatView({ apiOnline }: { apiOnline: boolean }) {
               {msg.role === "error" && (
                 <div className="bubble-error-label">Request failed</div>
               )}
-              <div className="bubble-text">{msg.text}</div>
+              <div className="bubble-text">
+                {msg.role === "assistant" ? <Markdown text={msg.text} /> : msg.text}
+              </div>
 
               {msg.meta && (
                 <>

@@ -739,3 +739,36 @@ button.star:hover {
     margin-top: 0;
   }
 }
+
+/* Rendered Markdown in assistant answers */
+.markdown {
+  white-space: normal;
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+.markdown p,
+.markdown ul,
+.markdown ol {
+  margin: 0 0 0.6em;
+}
+.markdown ul,
+.markdown ol {
+  padding-left: 1.3em;
+}
+.markdown li {
+  margin: 0.2em 0;
+}
+.markdown h4 {
+  margin: 0.8em 0 0.4em;
+  font-size: 1em;
+}
+.markdown code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.9em;
+}
